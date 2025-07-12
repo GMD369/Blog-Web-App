@@ -1,0 +1,13 @@
+Django==4.2.23
+djangorestframework==3.16.0
+djangorestframework-simplejwt==5.5.0
+django-cors-headers==4.7.0
+django-filter==25.1
+djangorestframework-nested==0.94.2
+psycopg2-binary==2.9.10
+cloudinary==1.44.1
+django-cloudinary-storage==0.3.0
+django-admin-interface==0.30.1
+django-colorfield==0.14.0
+Pillow==11.2.1
+python-dotenv==1.0.0 
