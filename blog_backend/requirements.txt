@@ -9,3 +9,4 @@ django-cloudinary-storage==0.3.0
 django-colorfield==0.14.0
 Pillow==11.2.1
 python-dotenv==1.0.0 
+python-3.11.8
