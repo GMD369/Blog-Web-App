@@ -4,6 +4,8 @@ import { jwtDecode } from "jwt-decode";
 
 export const AuthContext = createContext();
 
+const BASE_URL = import.meta.env.VITE_API_URL;
+
 export const AuthProvider = ({ children }) => {
   const [authTokens, setAuthTokens] = useState(() =>
     localStorage.getItem("authTokens")
@@ -15,22 +17,17 @@ export const AuthProvider = ({ children }) => {
   );
   const [loading, setLoading] = useState(true);
 
-  // Initialize user on mount
   useEffect(() => {
     const initializeUser = () => {
       try {
         const tokens = localStorage.getItem("authTokens");
         if (tokens) {
           const parsedTokens = JSON.parse(tokens);
-          console.log("Parsed tokens:", parsedTokens);
-          
           if (parsedTokens.access) {
             const decodedUser = jwtDecode(parsedTokens.access);
-            console.log("Decoded user:", decodedUser);
             setUser(decodedUser);
             setAuthTokens(parsedTokens);
           } else {
-            console.error("No access token found in parsed tokens");
             localStorage.removeItem("authTokens");
           }
         }
@@ -47,7 +44,7 @@ export const AuthProvider = ({ children }) => {
 
   const loginUser = async (username, password) => {
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/token/", {
+      const response = await fetch(`${BASE_URL}/api/token/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -57,10 +54,8 @@ export const AuthProvider = ({ children }) => {
 
       const data = await response.json();
       if (response.status === 200) {
-        console.log("Login response data:", data);
         setAuthTokens(data);
         const decodedUser = jwtDecode(data.access);
-        console.log("Decoded user from login:", decodedUser);
         setUser(decodedUser);
         localStorage.setItem("authTokens", JSON.stringify(data));
         return { success: true };
@@ -81,7 +76,7 @@ export const AuthProvider = ({ children }) => {
 
   const updateToken = async () => {
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/token/refresh/", {
+      const response = await fetch(`${BASE_URL}/api/token/refresh/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -91,10 +86,8 @@ export const AuthProvider = ({ children }) => {
 
       const data = await response.json();
       if (response.status === 200) {
-        console.log("Token refresh response:", data);
         setAuthTokens(data);
         const decodedUser = jwtDecode(data.access);
-        console.log("Decoded user from refresh:", decodedUser);
         setUser(decodedUser);
         localStorage.setItem("authTokens", JSON.stringify(data));
       } else {
@@ -111,16 +104,14 @@ export const AuthProvider = ({ children }) => {
     let interval = null;
 
     if (authTokens) {
-      // Check if token is about to expire (refresh 5 minutes before expiry)
       const token = jwtDecode(authTokens.access);
       const expiresIn = token.exp * 1000 - Date.now();
-      
+
       if (expiresIn > 0) {
         interval = setInterval(() => {
           updateToken();
-        }, Math.max(expiresIn - 300000, 60000)); // Refresh 5 minutes before expiry or every minute
+        }, Math.max(expiresIn - 300000, 60000));
       } else {
-        // Token already expired, try to refresh immediately
         updateToken();
       }
     }
@@ -139,6 +130,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={contextData}>{children}</AuthContext.Provider>
+    <AuthContext.Provider value={contextData}>
+      {children}
+    </AuthContext.Provider>
   );
 };
